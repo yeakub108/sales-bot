@@ -6,6 +6,7 @@ export default async function handler(req, res) {
     console.log('API Key present:', !!process.env.OPENAI_API_KEY);
     console.log('API Key length:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0);
     
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });

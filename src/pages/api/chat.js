@@ -6,9 +6,12 @@ export default async function handler(req, res) {
     console.error('OPENAI_API_KEY is missing in environment variables');
     return res.status(500).json({ 
       error: 'OpenAI API key is not configured', 
-      details: 'Please add OPENAI_API_KEY to your .env.local file' 
+      details: 'Please add OPENAI_API_KEY to your Vercel environment variables' 
     });
   }
+  
+  // Log API key length for debugging (don't log the actual key)
+  console.log('API key length:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0);
 
   // Initialize OpenAI client
   const openai = new OpenAI({
@@ -56,9 +59,13 @@ Ensure clients feel supported and well-informed throughout their property journe
 
   try {
     console.log('Calling OpenAI with model: gpt-4o-mini');
+    // Add more detailed logging
+    console.log('API Key validity check:', !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 0 ? 'Valid format' : 'Invalid format');
+    
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
+      max_tokens: 500  // Adding explicit max_tokens parameter
     });
 
     const responseContent = completion.choices[0].message.content;

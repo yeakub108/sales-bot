@@ -5,53 +5,93 @@ import ChatUI from "@/components/ChatUI";
 import { formatMarkdown } from "@/utils/markdown";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
 // Helper function to format message content with proper rendering of bullet points, numbering and emojis
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const formatMessageContent = (content: string): React.ReactNode => {
   // First, split the content by line breaks to process each paragraph
-  const lines = content.split('\n');
-  
+  const lines = content.split("\n");
+
   return (
     <>
       {lines.map((line, i) => {
         // Check for numbered lists (e.g., "1. Item" or "1) Item")
         if (/^\d+[.)]\s.+/.test(line)) {
-          return <div key={i} className="my-1">{line}</div>;
+          return (
+            <div key={i} className="my-1">
+              {line}
+            </div>
+          );
         }
-        
+
         // Check for bullet points (e.g., "- Item" or "• Item")
         else if (/^[-•]\s.+/.test(line)) {
-          return <div key={i} className="my-1 ml-2">{line}</div>;
+          return (
+            <div key={i} className="my-1 ml-2">
+              {line}
+            </div>
+          );
         }
-        
+
         // Check for section headers with emojis (e.g., "🔎 1. Eligibility Check")
-        else if (line.match(/^(\p{Emoji}|🔎|🏠|💰|📍)\s\d+\.\s.+/u) || line.match(/^(\ud83d\udd0e|\ud83c\udfe0|\ud83d\udcb0|\ud83d\udccd)\s\d+\.\s.+/)) {
-          return <div key={i} className="font-bold text-blue-800 mt-3 mb-1">{line}</div>;
+        else if (
+          line.match(/^(\p{Emoji}|🔎|🏠|💰|📍)\s\d+\.\s.+/u) ||
+          line.match(
+            /^(\ud83d\udd0e|\ud83c\udfe0|\ud83d\udcb0|\ud83d\udccd)\s\d+\.\s.+/
+          )
+        ) {
+          return (
+            <div key={i} className="font-bold text-blue-800 mt-3 mb-1">
+              {line}
+            </div>
+          );
         }
-        
+
         // Check for section headers without numbers but with emojis
-        else if (line.match(/^(\p{Emoji}|🔎|🏠|💰|📍)\s.+/u) || line.match(/^(\ud83d\udd0e|\ud83c\udfe0|\ud83d\udcb0|\ud83d\udccd)\s.+/)) {
-          return <div key={i} className="font-bold text-blue-800 mt-3 mb-1">{line}</div>;
+        else if (
+          line.match(/^(\p{Emoji}|🔎|🏠|💰|📍)\s.+/u) ||
+          line.match(
+            /^(\ud83d\udd0e|\ud83c\udfe0|\ud83d\udcb0|\ud83d\udccd)\s.+/
+          )
+        ) {
+          return (
+            <div key={i} className="font-bold text-blue-800 mt-3 mb-1">
+              {line}
+            </div>
+          );
         }
 
         // Check for bold text with asterisks (e.g., "**Bold text**")
-        else if (line.includes('**')) {
+        else if (line.includes("**")) {
           // Replace **text** with <strong>text</strong>
-          const boldReplacedLine = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-          return <div key={i} className="my-1" dangerouslySetInnerHTML={{ __html: boldReplacedLine }} />;
+          const boldReplacedLine = line.replace(
+            /\*\*(.+?)\*\*/g,
+            "<strong>$1</strong>"
+          );
+          return (
+            <div
+              key={i}
+              className="my-1"
+              dangerouslySetInnerHTML={{ __html: boldReplacedLine }}
+            />
+          );
         }
-        
+
         // Empty lines become proper spacing
-        else if (line.trim() === '') {
+        else if (line.trim() === "") {
           return <div key={i} className="h-2"></div>;
         }
-        
+
         // Regular paragraph
         else {
-          return <div key={i} className="my-1">{line}</div>;
+          return (
+            <div key={i} className="my-1">
+              {line}
+            </div>
+          );
         }
       })}
     </>
@@ -61,117 +101,161 @@ const formatMessageContent = (content: string): React.ReactNode => {
 // Helper function to generate highly dynamic and contextual follow-up questions based on conversation
 const getContextualFollowUps = (content: string): string[] => {
   const content_lower = content.toLowerCase();
-  let suggestedQuestions: string[] = [];
-  
+  const suggestedQuestions: string[] = [];
+
   // Extract key topics from the response
   const extractTopics = () => {
     const topics = [];
     // Check for specific property types
-    if (content_lower.includes('hdb')) topics.push('hdb');
-    if (content_lower.includes('condo') || content_lower.includes('condominium')) topics.push('condo');
-    if (content_lower.includes('landed') || content_lower.includes('bungalow') || content_lower.includes('terrace')) topics.push('landed');
-    
+    if (content_lower.includes("hdb")) topics.push("hdb");
+    if (
+      content_lower.includes("condo") ||
+      content_lower.includes("condominium")
+    )
+      topics.push("condo");
+    if (
+      content_lower.includes("landed") ||
+      content_lower.includes("bungalow") ||
+      content_lower.includes("terrace")
+    )
+      topics.push("landed");
+
     // Check for specific areas/regions
-    const areas = ['punggol', 'tampines', 'bedok', 'jurong', 'woodlands', 'yishun', 'ang mo kio', 'toa payoh', 'central', 'east', 'west', 'north', 'south'];
-    areas.forEach(area => {
+    const areas = [
+      "punggol",
+      "tampines",
+      "bedok",
+      "jurong",
+      "woodlands",
+      "yishun",
+      "ang mo kio",
+      "toa payoh",
+      "central",
+      "east",
+      "west",
+      "north",
+      "south",
+    ];
+    areas.forEach((area) => {
       if (content_lower.includes(area)) topics.push(area);
     });
-    
+
     // Check for specific concepts
-    if (content_lower.includes('bto')) topics.push('bto');
-    if (content_lower.includes('resale')) topics.push('resale');
-    if (content_lower.includes('rental') || content_lower.includes('rent')) topics.push('rental');
-    if (content_lower.includes('loan') || content_lower.includes('mortgage')) topics.push('financing');
-    if (content_lower.includes('price') || content_lower.includes('cost')) topics.push('pricing');
-    if (content_lower.includes('eligibility')) topics.push('eligibility');
-    if (content_lower.includes('agent') || content_lower.includes('commission')) topics.push('agent');
-    if (content_lower.includes('negotiate')) topics.push('negotiation');
-    
+    if (content_lower.includes("bto")) topics.push("bto");
+    if (content_lower.includes("resale")) topics.push("resale");
+    if (content_lower.includes("rental") || content_lower.includes("rent"))
+      topics.push("rental");
+    if (content_lower.includes("loan") || content_lower.includes("mortgage"))
+      topics.push("financing");
+    if (content_lower.includes("price") || content_lower.includes("cost"))
+      topics.push("pricing");
+    if (content_lower.includes("eligibility")) topics.push("eligibility");
+    if (content_lower.includes("agent") || content_lower.includes("commission"))
+      topics.push("agent");
+    if (content_lower.includes("negotiate")) topics.push("negotiation");
+
     return topics;
   };
 
   const topics = extractTopics();
-  
+
   // Add topic-specific questions based on the content
-  if (topics.includes('hdb')) {
+  if (topics.includes("hdb")) {
     // BTO vs Resale context
-    if (topics.includes('bto') && !topics.includes('resale')) {
-      suggestedQuestions.push('How long does the BTO application process take?');
-      suggestedQuestions.push('What factors affect my BTO ballot chances?');
-    } 
-    else if (topics.includes('resale') && !topics.includes('bto')) {
-      suggestedQuestions.push('What should I look for when viewing resale flats?');
-      suggestedQuestions.push('How is the resale value calculated?');
+    if (topics.includes("bto") && !topics.includes("resale")) {
+      suggestedQuestions.push(
+        "How long does the BTO application process take?"
+      );
+      suggestedQuestions.push("What factors affect my BTO ballot chances?");
+    } else if (topics.includes("resale") && !topics.includes("bto")) {
+      suggestedQuestions.push(
+        "What should I look for when viewing resale flats?"
+      );
+      suggestedQuestions.push("How is the resale value calculated?");
     }
     // General HDB questions
-    if (topics.includes('eligibility')) {
-      suggestedQuestions.push('Can singles buy HDB flats?');
-      suggestedQuestions.push('What are the income ceiling requirements?');
+    if (topics.includes("eligibility")) {
+      suggestedQuestions.push("Can singles buy HDB flats?");
+      suggestedQuestions.push("What are the income ceiling requirements?");
     } else {
-      suggestedQuestions.push('What are the HDB grant options available?');
+      suggestedQuestions.push("What are the HDB grant options available?");
     }
   }
-  
+
   // Condo-specific questions
-  if (topics.includes('condo')) {
-    suggestedQuestions.push('What are the maintenance fees for condos?');
-    suggestedQuestions.push('Which condos have the best facilities?');
-    if (topics.includes('investment') || topics.includes('financing')) {
-      suggestedQuestions.push('What is the average ROI for condos now?');
+  if (topics.includes("condo")) {
+    suggestedQuestions.push("What are the maintenance fees for condos?");
+    suggestedQuestions.push("Which condos have the best facilities?");
+    if (topics.includes("investment") || topics.includes("financing")) {
+      suggestedQuestions.push("What is the average ROI for condos now?");
     }
   }
-  
+
   // Financing-specific questions
-  if (topics.includes('financing')) {
-    if (!content_lower.includes('interest rate')) {
-      suggestedQuestions.push('What are the current interest rates?');
+  if (topics.includes("financing")) {
+    if (!content_lower.includes("interest rate")) {
+      suggestedQuestions.push("What are the current interest rates?");
     }
-    if (!content_lower.includes('down payment')) {
-      suggestedQuestions.push('How much down payment is required?');
+    if (!content_lower.includes("down payment")) {
+      suggestedQuestions.push("How much down payment is required?");
     }
-    if (!content_lower.includes('cpf')) {
-      suggestedQuestions.push('Can I use my CPF for this?');
+    if (!content_lower.includes("cpf")) {
+      suggestedQuestions.push("Can I use my CPF for this?");
     }
   }
-  
+
   // Area-specific questions
-  const locationAreas = ['punggol', 'tampines', 'bedok', 'jurong', 'woodlands', 'yishun', 'ang mo kio', 'toa payoh'];
-  const foundArea = topics.find(topic => locationAreas.includes(topic));
-  
+  const locationAreas = [
+    "punggol",
+    "tampines",
+    "bedok",
+    "jurong",
+    "woodlands",
+    "yishun",
+    "ang mo kio",
+    "toa payoh",
+  ];
+  const foundArea = topics.find((topic) => locationAreas.includes(topic));
+
   if (foundArea) {
     suggestedQuestions.push(`What are property prices like in ${foundArea}?`);
     suggestedQuestions.push(`Are there good schools in ${foundArea}?`);
   }
-  
+
   // Process/procedure specific questions
-  if (content_lower.includes('process') || content_lower.includes('procedure') || content_lower.includes('steps')) {
-    if (!content_lower.includes('time') && !content_lower.includes('long')) {
-      suggestedQuestions.push('How long does this process usually take?');
+  if (
+    content_lower.includes("process") ||
+    content_lower.includes("procedure") ||
+    content_lower.includes("steps")
+  ) {
+    if (!content_lower.includes("time") && !content_lower.includes("long")) {
+      suggestedQuestions.push("How long does this process usually take?");
     }
-    if (!content_lower.includes('document')) {
-      suggestedQuestions.push('What documents do I need to prepare?');
+    if (!content_lower.includes("document")) {
+      suggestedQuestions.push("What documents do I need to prepare?");
     }
   }
-  
+
   // Default follow-ups if no specific context was detected or not enough suggestions
   if (suggestedQuestions.length < 2) {
     const defaultOptions = [
-      'Tell me more about the market trends',
-      'What are common mistakes to avoid?',
-      'What additional costs should I budget for?',
-      'How can I get the best deal?',
-      'What are the next steps in this process?'
+      "Tell me more about the market trends",
+      "What are common mistakes to avoid?",
+      "What additional costs should I budget for?",
+      "How can I get the best deal?",
+      "What are the next steps in this process?",
     ];
-    
+
     // Add default questions until we have at least 3 suggestions
     while (suggestedQuestions.length < 3) {
-      const randomQuestion = defaultOptions[Math.floor(Math.random() * defaultOptions.length)];
+      const randomQuestion =
+        defaultOptions[Math.floor(Math.random() * defaultOptions.length)];
       if (!suggestedQuestions.includes(randomQuestion)) {
         suggestedQuestions.push(randomQuestion);
       }
     }
   }
-  
+
   // Limit to 3 suggestions and ensure they're different
   return [...new Set(suggestedQuestions)].slice(0, 3);
 };
@@ -191,9 +275,15 @@ export default function Home() {
   }, [messages]);
 
   const sendMessage = async (message: string) => {
-    const newMessages = [...messages, { role: 'user' as const, content: message }];
+    const newMessages = [
+      ...messages,
+      { role: "user" as const, content: message },
+    ];
     setMessages(newMessages);
     setIsLoading(true);
+    
+    // Display the endpoint we're calling (for debugging)
+    console.log('Calling API endpoint:', '/api/chat');
 
     try {
       const res = await fetch("/api/chat", {
@@ -202,22 +292,41 @@ export default function Home() {
         body: JSON.stringify({ userMessage: message }),
       });
 
-      const data = await res.json();
+      // Log response status to help debug
+      console.log('API response status:', res.status);
       
+      const data = await res.json();
+      console.log('API response data:', data);
+
       if (res.ok) {
-        setMessages([...newMessages, { role: 'assistant' as const, content: data.reply }]);
-      } else {
         setMessages([
-          ...newMessages, 
-          { role: 'assistant' as const, content: "Sorry, I couldn't process your request. Please try again." }
+          ...newMessages,
+          { role: "assistant" as const, content: data.reply },
         ]);
-        console.error("API error:", data.error);
+      } else {
+        // Show more specific error message when available
+        const errorMessage = data.error 
+          ? `Error: ${data.error}${data.details ? ` - ${data.details}` : ''}` 
+          : "Sorry, I couldn't process your request. Please try again.";
+          
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant" as const,
+            content: errorMessage,
+          },
+        ]);
+        console.error("API error:", data);
       }
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages([
-        ...newMessages, 
-        { role: 'assistant' as const, content: "Sorry, there was an error processing your request. Please try again later." }
+        ...newMessages,
+        {
+          role: "assistant" as const,
+          content:
+            "Sorry, there was an error processing your request. Please check the console for more details.",
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -232,9 +341,7 @@ export default function Home() {
           RE
         </div>
         <div>
-          <h1 className="text-lg font-semibold">
-            Real Estate Property Expert
-          </h1>
+          <h1 className="text-lg font-semibold">Real Estate Property Expert</h1>
           {/* <p className="text-xs text-gray-100">
             15+ Years of Property Expertise
           </p> */}
@@ -246,11 +353,11 @@ export default function Home() {
         {messages.length === 0 && (
           <div className="text-center text-gray-700 mt-10">
             <p className="font-bold text-xl mb-2">
-              Welcome! I'm your Singapore Real Estate Expert
+              Welcome! I&apos;m your Singapore Real Estate Expert
             </p>
             <p className="text-sm mb-4">
               With over 15 years of experience in the Singapore property market,
-              I'm here to help with all your real estate needs.
+              I&apos;m here to help with all your real estate needs.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-3 mb-2">
               <button
