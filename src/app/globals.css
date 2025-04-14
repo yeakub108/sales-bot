@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+/* Message formatting styles */
+.formatted-message {
+  line-height: 1.5;
+}
+
+.formatted-message div {
+  margin-bottom: 0.5rem;
+}
+
+/* Emoji section headers */
+.formatted-message div[class*="font-bold"] {
+  color: #1e40af; /* blue-800 */
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+  border-left: 3px solid #1e40af;
+}
+
+/* Numbered lists */
+.formatted-message div.my-1:not(.ml-2):not(.font-bold) {
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+/* Bullet points */
+.formatted-message div.ml-2 {
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+/* Spacing between sections */
+.formatted-message div.h-2 {
+  height: 0.5rem;
+}
