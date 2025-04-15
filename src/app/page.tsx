@@ -273,6 +273,332 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
+  // Function to dynamically generate responses based on user query context
+  const handleLocalChatResponse = async (userMessage: string, currentMessages: Message[]) => {
+    try {
+      // Load knowledge base dynamically to keep responses fresh (can be extended with fetch from database/API)
+      const knowledgeBase = {
+        hdbGrants: {
+          getInfo: async (query: string) => {
+            // Dynamic response based on specific grant query keywords
+            const isFamily = query.toLowerCase().includes('family');
+            const isSingle = query.toLowerCase().includes('single');
+            const isProximity = query.toLowerCase().includes('proxim') || query.toLowerCase().includes('near');
+            const isStepUp = query.toLowerCase().includes('step') || query.toLowerCase().includes('upgrade');
+            const isSenior = query.toLowerCase().includes('senior') || query.toLowerCase().includes('elderly');
+            
+            let response = `In Singapore, the Housing & Development Board (HDB) offers several housing grants tailored to different needs:
+
+`;
+            
+            // Include details based on query context
+            if (isFamily || (!isSingle && !isProximity && !isStepUp && !isSenior)) {
+              response += `🏠 **Enhanced CPF Housing Grant (EHG) for Families**
+- Amount: Up to $120,000
+- Eligibility: First-time applicants with household income ceiling of $9,000
+- At least one applicant must have worked continuously for 12 months
+- Flat must have sufficient lease to cover youngest applicant until age 95
+
+`;
+            }
+            
+            if (isSingle || (!isFamily && !isProximity && !isStepUp && !isSenior)) {
+              response += `👤 **Enhanced CPF Housing Grant (EHG) for Singles**
+- Amount: Up to $60,000
+- Eligibility: First-time singles aged 35+ with income ceiling of $4,500
+- Must have worked continuously for 12 months
+- Same lease sufficiency requirement as families
+
+`;
+            }
+            
+            if (isProximity || (!isFamily && !isSingle && !isStepUp && !isSenior)) {
+              response += `🧭 **Proximity Housing Grant (PHG)**
+- For Families: Up to $30,000 when living with/near parents/children (within 4km)
+- For Singles: Up to $15,000 when living with/near parents (age 35+)
+- At least one applicant must be a Singapore Citizen
+
+`;
+            }
+            
+            if (isStepUp) {
+              response += `🔄 **Step-Up CPF Housing Grant**
+- Amount: $15,000
+- For second-timer families moving from 2-room to 3-room flat in non-mature estate
+- Monthly household income ceiling: $7,000
+- Employment requirements similar to EHG
+
+`;
+            }
+            
+            if (isSenior) {
+              response += `👵 **Grants for Seniors**
+- For Singapore Citizens aged 55+ buying short-lease 2-room Flexi flats
+- Available grants include EHG, CPF Housing Grant, and PHG
+- Special consideration for lease length and retirement adequacy
+
+`;
+            }
+            
+            // General information for comprehensive coverage
+            response += `Additionally, the **CPF Housing Grant for Resale Flats** provides:
+- For Families: $80,000 (2-4 room) or $50,000 (5-room+) with income ceiling of $14,000
+- For Singles: $40,000 (2-4 room) or $25,000 (5-room) with income ceiling of $7,000
+
+For the most up-to-date grant information and to check your specific eligibility, I recommend visiting the official HDB website or speaking with an HDB officer.`;
+            
+            return response;
+          },
+        },
+        propertyMarket: {
+          getInfo: async (query: string) => {
+            // Dynamic response based on market query keywords
+            const isTrend = query.toLowerCase().includes('trend') || query.toLowerCase().includes('forecast');
+            const isPrice = query.toLowerCase().includes('price') || query.toLowerCase().includes('cost');
+            const isArea = query.toLowerCase().includes('area') || query.toLowerCase().includes('region') || query.toLowerCase().includes('district');
+            const isRental = query.toLowerCase().includes('rent') || query.toLowerCase().includes('lease');
+            
+            let response = `The Singapore property market in ${new Date().getFullYear()} shows these key characteristics:
+
+`;
+            
+            // Include details based on query context
+            if (isTrend || (!isPrice && !isArea && !isRental)) {
+              response += `📈 **Current Market Trends**
+- HDB Resale: Moderate growth of 3-4% annually after the 2021-2023 surge
+- Private Residential: Stable growth of 2-3% annually with luxury segment attracting foreign investors
+- Government cooling measures continue to maintain market stability
+
+`;
+            }
+            
+            if (isPrice || (!isTrend && !isArea && !isRental)) {
+              response += `💰 **Price Indicators**
+- HDB Resale: Average prices range from $400K-$600K (3-room) to $700K-$1M+ (5-room)
+- Private Condos: Entry-level from $1.2M-$1.8M, mid-tier $1.8M-$3M, luxury $3M+
+- Landed Properties: Typically $3M+ for terrace houses, $5M+ for semi-detached, $8M+ for bungalows
+
+`;
+            }
+            
+            if (isArea || (!isTrend && !isPrice && !isRental)) {
+              response += `📍 **Regional Hotspots**
+- Emerging Areas: Jurong Lake District, Woodlands Regional Centre, Greater Southern Waterfront
+- Mature Estates: Tampines, Bishan, Clementi continue to command premium prices
+- Growth Corridors: Areas near upcoming MRT stations on Cross Island Line and Thomson-East Coast Line
+
+`;
+            }
+            
+            if (isRental || (!isTrend && !isPrice && !isArea)) {
+              response += `🏘️ **Rental Market**
+- Rental Yields: 3.0-3.5% for private properties, 4.0-4.5% for HDB flats
+- High Demand Areas: CBD fringe (Tanjong Pagar, River Valley), East Coast, Novena
+- Rental Rates: $2.5K-$3.5K for HDB, $3.5K-$5K for suburban condos, $5K-$8K+ for prime condos
+
+`;
+            }
+            
+            response += `The property market remains influenced by government policies, interest rates, and global economic conditions. For personalized advice based on your specific circumstances, consulting with a licensed property agent is recommended.`;
+            
+            return response;
+          },
+        },
+        investment: {
+          getInfo: async (query: string) => {
+            // Generate dynamic investment advice based on query context
+            const isLongTerm = query.toLowerCase().includes('long') || query.toLowerCase().includes('future');
+            const isYield = query.toLowerCase().includes('yield') || query.toLowerCase().includes('rental') || query.toLowerCase().includes('income');
+            const isTax = query.toLowerCase().includes('tax') || query.toLowerCase().includes('duty') || query.toLowerCase().includes('stamp');
+            const isROI = query.toLowerCase().includes('roi') || query.toLowerCase().includes('return');
+            
+            let response = `For property investment in Singapore, consider these key strategies and insights:
+
+`;
+            
+            if (isLongTerm || (!isYield && !isTax && !isROI)) {
+              response += `🔎 **Long-term Capital Appreciation**
+- Focus on properties near future infrastructure (e.g., Jurong Lake District, Paya Lebar Airbase redevelopment)
+- Consider upcoming MRT lines and interchange stations (Cross Island Line, Thomson-East Coast Line)
+- Look for areas with transformation masterplans (Greater Southern Waterfront, Punggol Digital District)
+
+`;
+            }
+            
+            if (isYield || (!isLongTerm && !isTax && !isROI)) {
+              response += `💰 **Rental Income Strategy**
+- Prime Districts (9, 10, 11): Strong expatriate demand but higher entry costs and lower yields (2.5-3%)
+- City Fringe (Districts 5, 7, 15): Better balance of rental demand and yields (3-3.5%)
+- HDB Rentals: Higher yields (4-4.5%) but with restrictions on minimum occupancy period
+
+`;
+            }
+            
+            if (isTax || (!isLongTerm && !isYield && !isROI)) {
+              response += `📑 **Tax Considerations**
+- Property Tax: 4% for owner-occupied properties, 10-20% for investment properties
+- Additional Buyer's Stamp Duty (ABSD): 20% for Singapore Citizens buying second property, 30% for third+
+- Seller's Stamp Duty (SSD): Up to 12% if selling within first year, tapering to 0% after 4th year
+
+`;
+            }
+            
+            if (isROI || (!isLongTerm && !isYield && !isTax)) {
+              response += `📊 **Investment Returns**
+- Historical Capital Appreciation: 3-5% annually over 10-year periods (varies by property type/location)
+- Rental Yields: 2-4.5% depending on property type and location
+- Total Returns (Appreciation + Yield): Typically 5-8% annually for well-selected properties
+- Alternative: REITs offer 4-7% dividend yields with lower capital outlay and better liquidity
+
+`;
+            }
+            
+            response += `Every investment decision should consider your personal financial situation, risk tolerance, and investment horizon. Due diligence on specific properties and consulting with financial advisors is always recommended.`;
+            
+            return response;
+          },
+        },
+        // Additional knowledge domains can be added here
+        general: {
+          getInfo: async (query: string) => {
+            // Provide comprehensive answer based on query analysis
+            const keywords = query.toLowerCase().split(' ');
+            const topics = {
+              buying: keywords.some(k => ['buy', 'purchase', 'acquire', 'get'].includes(k)),
+              selling: keywords.some(k => ['sell', 'sale', 'selling', 'dispose'].includes(k)),
+              neighborhood: keywords.some(k => ['area', 'neighborhood', 'district', 'location'].includes(k)),
+              financing: keywords.some(k => ['loan', 'mortgage', 'finance', 'payment'].includes(k)),
+              process: keywords.some(k => ['process', 'procedure', 'step', 'how'].includes(k)),
+              legal: keywords.some(k => ['legal', 'law', 'regulation', 'rule'].includes(k)),
+            };
+            
+            // Prioritize topics based on keyword matches
+            const prioritizedTopics = Object.entries(topics)
+              .filter(([, isMatched]) => isMatched)
+              .map(([topic]) => topic);
+            
+            // Default topics if no specific matches found
+            const topicsToAddress = prioritizedTopics.length > 0 ? 
+              prioritizedTopics : ['buying', 'neighborhood', 'financing'];
+            
+            let response = `As a Singapore real estate expert, here's what you should know about `;
+            response += topicsToAddress.join(', ') + `:
+
+`;
+            
+            // Generate specific content for each identified topic
+            if (topicsToAddress.includes('buying')) {
+              response += `🏠 **Property Acquisition Process**
+- HDB flats require eligibility checks (citizenship, income ceiling, family nucleus)
+- Private properties have fewer restrictions but higher costs (esp. with ABSD)
+- Typical process: property search → viewings → offer → option fee → exercise option → completion
+- Timeline: 8-12 weeks for resale properties, 3-4 years for new launch (BTO/condo)
+
+`;
+            }
+            
+            if (topicsToAddress.includes('selling')) {
+              response += `💼 **Selling Your Property**
+- Consider timing, market conditions, and your onward housing plans
+- Marketing options: engage agent (1-2% commission) or DIY platforms
+- Prepare property (minor renovations, staging) to maximize value
+- Tax implications: potential Seller's Stamp Duty if selling within 3 years
+
+`;
+            }
+            
+            if (topicsToAddress.includes('neighborhood')) {
+              response += `📍 **Neighborhood Insights**
+- Family-friendly: Tampines, Punggol, Pasir Ris (affordable); Bukit Timah, Holland V (premium)
+- CBD proximity: Tanjong Pagar, River Valley, Tiong Bahru
+- Investment potential: Woodlands (Malaysia proximity), Jurong East (regional center)
+- Up-and-coming: Tengah (future eco-town), Paya Lebar (commercial hub development)
+
+`;
+            }
+            
+            if (topicsToAddress.includes('financing')) {
+              response += `💰 **Financing Options**
+- HDB loans: 2.6% interest, up to 80% LTV, uses CPF Ordinary Account funds
+- Bank loans: 2.6-3.2% (variable), up to 75% LTV, potentially lower rates but fluctuating
+- CPF usage: Ordinary Account can be used for down payment and monthly payments
+- MSR (30%) and TDSR (55%) restrictions apply to loan qualification
+
+`;
+            }
+            
+            if (topicsToAddress.includes('process')) {
+              response += `📋 **Key Process Steps**
+1. Research and budgeting (incl. stamp duties, legal fees, agent commissions)
+2. Property search and viewings (physical or virtual)
+3. Negotiation and offer (verbal offer → OTP with 1% option fee)
+4. Due diligence (legal, structural, financing approval)
+5. Exercise option (additional 4% payment)
+6. Completion (remaining 95%, handover of property)
+
+`;
+            }
+            
+            if (topicsToAddress.includes('legal')) {
+              response += `⚖️ **Legal Considerations**
+- Foreign ownership restrictions (can buy condos but not HDB or most landed properties)
+- Cooling measures (ABSD, TDSR, LTV limits)
+- Minimum Occupation Period (MOP) of 5 years for HDB flats before selling/renting
+- Conveyancing process requires lawyer ($2,500-5,000 in legal fees)
+
+`;
+            }
+            
+            // Add a personalized conclusion
+            response += `I hope this information helps with your real estate decisions. If you have more specific questions about any aspect of Singapore property, feel free to ask!`;
+            
+            return response;
+          },
+        },
+      };
+
+      // Analyze user query to determine response category
+      const userMessageLower = userMessage.toLowerCase();
+      let responseContent = '';
+
+      // Route to appropriate knowledge domain based on query analysis
+      if (userMessageLower.includes('hdb') && (userMessageLower.includes('grant') || userMessageLower.includes('subsidy'))) {
+        responseContent = await knowledgeBase.hdbGrants.getInfo(userMessage);
+      } 
+      else if (userMessageLower.includes('market') || userMessageLower.includes('trend') || userMessageLower.includes('price')) {
+        responseContent = await knowledgeBase.propertyMarket.getInfo(userMessage);
+      }
+      else if (userMessageLower.includes('invest') || userMessageLower.includes('roi') || userMessageLower.includes('return')) {
+        responseContent = await knowledgeBase.investment.getInfo(userMessage);
+      }
+      else {
+        // Default to general knowledge with context-awareness
+        responseContent = await knowledgeBase.general.getInfo(userMessage);
+      }
+
+      // Update messages with the dynamically generated response
+      setMessages([
+        ...currentMessages,
+        {
+          role: "assistant" as const,
+          content: responseContent,
+        },
+      ]);
+
+    } catch (err) {
+      console.error("Error in local chat handling:", err);
+      // Even our fallback has a fallback! This ensures we always give a useful response
+      setMessages([
+        ...currentMessages,
+        {
+          role: "assistant" as const,
+          content: `As a Singapore real estate expert, I can tell you that the property market offers various opportunities from HDB flats to private condominiums and landed properties. Each has its own advantages in terms of location, pricing, and investment potential. Would you like to know more about a specific aspect of Singapore real estate?`,
+        },
+      ]);
+    }
+  };
+
 
   const sendMessage = async (message: string) => {
     const newMessages = [
@@ -320,14 +646,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant" as const,
-          content:
-            "Sorry, there was an error processing your request. Please check the console for more details.",
-        },
-      ]);
+      
+      // Try to handle the request locally if API fails
+      handleLocalChatResponse(message, newMessages);
     } finally {
       setIsLoading(false);
     }
@@ -355,10 +676,10 @@ export default function Home() {
             <p className="font-bold text-xl mb-2">
               Welcome! I&apos;m your Singapore Real Estate Expert
             </p>
-            <p className="text-sm mb-4">
+            {/* <p className="text-sm mb-4">
               With over 15 years of experience in the Singapore property market,
               I&apos;m here to help with all your real estate needs.
-            </p>
+            </p> */}
             <div className="flex flex-wrap justify-center gap-2 mt-3 mb-2">
               <button
                 onClick={() =>

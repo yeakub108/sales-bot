@@ -32,7 +32,7 @@ export default function ChatUI({ onSend, isLoading }: ChatUIProps) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me about Singapore property..."
+            placeholder="Ask me about Singapore real estate property..."
             className="border border-gray-300 rounded-full py-3 px-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             disabled={isLoading}
           />
@@ -49,13 +49,25 @@ export default function ChatUI({ onSend, isLoading }: ChatUIProps) {
           className="bg-blue-800 hover:bg-blue-900 text-white rounded-full p-2 w-12 h-12 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           disabled={isLoading || !input.trim()}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
           </svg>
         </button>
       </form>
       <div className="text-xs text-gray-500 text-center mt-2">
-        Ask about buying, selling, property values, or neighborhood insights in Singapore
+        Ask about buying, selling, property values, or neighborhood insights in
+        Singapore
       </div>
     </div>
   );
