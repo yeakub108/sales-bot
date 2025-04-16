@@ -148,7 +148,7 @@ Ensure clients feel supported and well-informed throughout their property journe
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      max_tokens: 500  // Adding explicit max_tokens parameter
+      max_tokens: 2000  // Increased from 500 to allow for longer, more comprehensive responses
     });
 
     const responseContent = completion.choices[0].message.content;

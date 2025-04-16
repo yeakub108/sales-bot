@@ -98,166 +98,372 @@ const formatMessageContent = (content: string): React.ReactNode => {
   );
 };
 
-// Helper function to generate highly dynamic and contextual follow-up questions based on conversation
-const getContextualFollowUps = (content: string): string[] => {
-  const content_lower = content.toLowerCase();
-  const suggestedQuestions: string[] = [];
-
-  // Extract key topics from the response
-  const extractTopics = () => {
-    const topics = [];
-    // Check for specific property types
-    if (content_lower.includes("hdb")) topics.push("hdb");
-    if (
-      content_lower.includes("condo") ||
-      content_lower.includes("condominium")
-    )
-      topics.push("condo");
-    if (
-      content_lower.includes("landed") ||
-      content_lower.includes("bungalow") ||
-      content_lower.includes("terrace")
-    )
-      topics.push("landed");
-
-    // Check for specific areas/regions
-    const areas = [
-      "punggol",
-      "tampines",
-      "bedok",
-      "jurong",
-      "woodlands",
-      "yishun",
-      "ang mo kio",
-      "toa payoh",
-      "central",
-      "east",
-      "west",
-      "north",
-      "south",
-    ];
-    areas.forEach((area) => {
-      if (content_lower.includes(area)) topics.push(area);
+// Helper function to generate highly dynamic and contextual follow-up questions based on conversation history
+const getContextualFollowUps = (latestContent: string, allMessages?: Message[]): string[] => {
+  // Track topics, concepts and areas from previous messages
+  const previousTopics = new Set<string>();
+  const mentionedConcepts = new Set<string>();
+  const discussedAreas = new Set<string>();
+  
+  if (allMessages && allMessages.length > 0) {
+    // Use the last 4 messages for context (or fewer if there aren't 4)
+    const recentMessages = allMessages.slice(Math.max(0, allMessages.length - 4));
+    
+    // Add all content to conversation context and extract topics
+    recentMessages.forEach(msg => {
+      const msgLower = msg.content.toLowerCase();
+      
+      // Extract property types
+      if (msgLower.includes("hdb")) previousTopics.add("hdb");
+      if (msgLower.includes("condo") || msgLower.includes("condominium")) previousTopics.add("condo");
+      if (msgLower.includes("landed") || msgLower.includes("bungalow") || msgLower.includes("terrace")) 
+        previousTopics.add("landed");
+      
+      // Extract concepts
+      const conceptsToCheck = [
+        "bto", "resale", "rental", "rent", "loan", "mortgage", "financing",
+        "price", "cost", "eligibility", "agent", "commission", "negotiate",
+        "grant", "subsidy", "tax", "stamp duty", "absd", "bsd", "renovation",
+        "furnishing", "investment", "roi", "return", "yield", "capital gain",
+        "cash flow", "lease", "freehold", "location", "neighborhood", "schools",
+        "transport", "amenities", "facilities", "maintenance", "management fee"
+      ];
+      
+      conceptsToCheck.forEach(concept => {
+        if (msgLower.includes(concept)) mentionedConcepts.add(concept);
+      });
+      
+      // Extract areas
+      const areasToCheck = [
+        "punggol", "tampines", "bedok", "jurong", "woodlands", "yishun",
+        "ang mo kio", "toa payoh", "central", "east", "west", "north", "south",
+        "bishan", "pasir ris", "clementi", "bukit timah", "novena", "queenstown",
+        "geylang", "marine parade", "serangoon", "kallang", "tanjong pagar",
+        "holland village", "bugis", "orchard", "sentosa", "cbd"
+      ];
+      
+      areasToCheck.forEach(area => {
+        if (msgLower.includes(area)) discussedAreas.add(area);
+      });
     });
-
-    // Check for specific concepts
-    if (content_lower.includes("bto")) topics.push("bto");
-    if (content_lower.includes("resale")) topics.push("resale");
-    if (content_lower.includes("rental") || content_lower.includes("rent"))
+  }
+  
+  // Extract latest message topics
+  const latestLower = latestContent.toLowerCase();
+  const extractLatestTopics = () => {
+    const topics = [];
+    
+    // Property types
+    if (latestLower.includes("hdb")) topics.push("hdb");
+    if (latestLower.includes("condo") || latestLower.includes("condominium"))
+      topics.push("condo");
+    if (latestLower.includes("landed") || latestLower.includes("bungalow") || 
+latestLower.includes("terrace"))
+      topics.push("landed");
+    
+    // Areas
+    const areas = [
+      "punggol", "tampines", "bedok", "jurong", "woodlands", "yishun",
+      "ang mo kio", "toa payoh", "central", "east", "west", "north", "south",
+      "bishan", "pasir ris", "clementi", "bukit timah", "novena", "queenstown"
+    ];
+    
+    areas.forEach(area => {
+      if (latestLower.includes(area)) topics.push(area);
+    });
+    
+    // Concepts
+    if (latestLower.includes("bto")) topics.push("bto");
+    if (latestLower.includes("resale")) topics.push("resale");
+    if (latestLower.includes("rental") || latestLower.includes("rent"))
       topics.push("rental");
-    if (content_lower.includes("loan") || content_lower.includes("mortgage"))
+    if (latestLower.includes("loan") || latestLower.includes("mortgage"))
       topics.push("financing");
-    if (content_lower.includes("price") || content_lower.includes("cost"))
+    if (latestLower.includes("price") || latestLower.includes("cost"))
       topics.push("pricing");
-    if (content_lower.includes("eligibility")) topics.push("eligibility");
-    if (content_lower.includes("agent") || content_lower.includes("commission"))
+    if (latestLower.includes("eligibility")) topics.push("eligibility");
+    if (latestLower.includes("agent") || latestLower.includes("commission"))
       topics.push("agent");
-    if (content_lower.includes("negotiate")) topics.push("negotiation");
-
+    if (latestLower.includes("negotiate")) topics.push("negotiation");
+    if (latestLower.includes("grant") || latestLower.includes("subsidy"))
+      topics.push("grants");
+    if (latestLower.includes("investment") || latestLower.includes("roi"))
+      topics.push("investment");
+    
     return topics;
   };
 
-  const topics = extractTopics();
-
-  // Add topic-specific questions based on the content
-  if (topics.includes("hdb")) {
-    // BTO vs Resale context
-    if (topics.includes("bto") && !topics.includes("resale")) {
-      suggestedQuestions.push(
-        "How long does the BTO application process take?"
-      );
-      suggestedQuestions.push("What factors affect my BTO ballot chances?");
-    } else if (topics.includes("resale") && !topics.includes("bto")) {
-      suggestedQuestions.push(
-        "What should I look for when viewing resale flats?"
-      );
-      suggestedQuestions.push("How is the resale value calculated?");
-    }
-    // General HDB questions
-    if (topics.includes("eligibility")) {
-      suggestedQuestions.push("Can singles buy HDB flats?");
-      suggestedQuestions.push("What are the income ceiling requirements?");
-    } else {
-      suggestedQuestions.push("What are the HDB grant options available?");
-    }
-  }
-
-  // Condo-specific questions
-  if (topics.includes("condo")) {
-    suggestedQuestions.push("What are the maintenance fees for condos?");
-    suggestedQuestions.push("Which condos have the best facilities?");
-    if (topics.includes("investment") || topics.includes("financing")) {
-      suggestedQuestions.push("What is the average ROI for condos now?");
-    }
-  }
-
-  // Financing-specific questions
-  if (topics.includes("financing")) {
-    if (!content_lower.includes("interest rate")) {
-      suggestedQuestions.push("What are the current interest rates?");
-    }
-    if (!content_lower.includes("down payment")) {
-      suggestedQuestions.push("How much down payment is required?");
-    }
-    if (!content_lower.includes("cpf")) {
-      suggestedQuestions.push("Can I use my CPF for this?");
-    }
-  }
-
-  // Area-specific questions
-  const locationAreas = [
-    "punggol",
-    "tampines",
-    "bedok",
-    "jurong",
-    "woodlands",
-    "yishun",
-    "ang mo kio",
-    "toa payoh",
-  ];
-  const foundArea = topics.find((topic) => locationAreas.includes(topic));
-
-  if (foundArea) {
-    suggestedQuestions.push(`What are property prices like in ${foundArea}?`);
-    suggestedQuestions.push(`Are there good schools in ${foundArea}?`);
-  }
-
-  // Process/procedure specific questions
-  if (
-    content_lower.includes("process") ||
-    content_lower.includes("procedure") ||
-    content_lower.includes("steps")
-  ) {
-    if (!content_lower.includes("time") && !content_lower.includes("long")) {
-      suggestedQuestions.push("How long does this process usually take?");
-    }
-    if (!content_lower.includes("document")) {
-      suggestedQuestions.push("What documents do I need to prepare?");
-    }
-  }
-
-  // Default follow-ups if no specific context was detected or not enough suggestions
-  if (suggestedQuestions.length < 2) {
-    const defaultOptions = [
-      "Tell me more about the market trends",
-      "What are common mistakes to avoid?",
-      "What additional costs should I budget for?",
-      "How can I get the best deal?",
-      "What are the next steps in this process?",
-    ];
-
-    // Add default questions until we have at least 3 suggestions
-    while (suggestedQuestions.length < 3) {
-      const randomQuestion =
-        defaultOptions[Math.floor(Math.random() * defaultOptions.length)];
-      if (!suggestedQuestions.includes(randomQuestion)) {
-        suggestedQuestions.push(randomQuestion);
+  // Generate dynamic suggested questions
+  const generateSuggestedQuestions = () => {
+    const suggestedQuestions: string[] = [];
+    const latestTopics = extractLatestTopics();
+    
+    // Get all topics from both current and previous messages
+    const allTopics = [...new Set([...latestTopics, ...Array.from(previousTopics)])];
+    
+    // Create a pool of potential questions based on all identified topics
+    const questionPool: {question: string; priority: number}[] = [];
+    
+    // Add relevant follow-up questions based on the actual conversation
+    
+    // HDB related questions that extend the conversation in new directions
+    if (allTopics.includes("hdb")) {
+      // If BTO was discussed but not resale, ask about resale comparison
+      if (mentionedConcepts.has("bto") && !mentionedConcepts.has("resale")) {
+        questionPool.push({
+          question: "How does BTO compare to resale HDB in terms of value?",
+          priority: 8
+        });
+      }
+      
+      // If resale was discussed but not BTO, ask about BTO
+      if (mentionedConcepts.has("resale") && !mentionedConcepts.has("bto")) {
+        questionPool.push({
+          question: "Should I consider BTO instead of resale?",
+          priority: 8
+        });
+      }
+      
+      // If neither specific type was mentioned, ask about both
+      if (!mentionedConcepts.has("bto") && !mentionedConcepts.has("resale")) {
+        questionPool.push({
+          question: "Which is better for me: BTO or resale HDB?",
+          priority: 7 
+        });
+      }
+      
+      // If grants weren't specifically mentioned
+      if (!mentionedConcepts.has("grant") && !mentionedConcepts.has("subsidy")) {
+        questionPool.push({
+          question: "What HDB grants am I eligible for?",
+          priority: 9
+        });
+      }
+      
+      // If eligibility was mentioned but not fully addressed
+      if (mentionedConcepts.has("eligibility")) {
+        if (!latestLower.includes("income ceiling")) {
+          questionPool.push({
+            question: "What are the income ceiling requirements?",
+            priority: 6
+          });
+        }
+        
+        if (!latestLower.includes("single")) {
+          questionPool.push({
+            question: "Can singles buy HDB flats?",
+            priority: 5
+          });
+        }
       }
     }
-  }
+    
+    // Condo related questions
+    if (allTopics.includes("condo")) {
+      // If investment aspects weren't discussed
+      if (!mentionedConcepts.has("investment") && !mentionedConcepts.has("roi")) {
+        questionPool.push({
+          question: "Are condos a good investment right now?",
+          priority: 6
+        });
+      }
+      
+      // If maintenance fees weren't mentioned
+      if (!latestLower.includes("maintenance") && !latestLower.includes("fee")) {
+        questionPool.push({
+          question: "What should I know about condo maintenance fees?",
+          priority: 7
+        });
+      }
+      
+      // If we haven't discussed facilities
+      if (!mentionedConcepts.has("facilities") && !mentionedConcepts.has("amenities")) {
+        questionPool.push({
+          question: "What facilities should I look for in a good condo?",
+          priority: 5
+        });
+      }
+      
+      // If location comparison hasn't been discussed
+      if (discussedAreas.size === 0) {
+        questionPool.push({
+          question: "Which areas have the best value for condos right now?",
+          priority: 8
+        });
+      }
+    }
+    
+    // Financing related questions
+    if (allTopics.includes("financing") || mentionedConcepts.has("loan") || mentionedConcepts.has("mortgage")) {
+      // If interest rates weren't discussed
+      if (!latestLower.includes("interest") && !latestLower.includes("rate")) {
+        questionPool.push({
+          question: "What are the current interest rates for home loans?",
+          priority: 8
+        });
+      }
+      
+      // If loan term wasn't discussed
+      if (!latestLower.includes("term") && !latestLower.includes("tenure") && !latestLower.includes("duration")) {
+        questionPool.push({
+          question: "What loan tenure should I choose?",
+          priority: 6
+        });
+      }
+      
+      // If down payment wasn't discussed
+      if (!latestLower.includes("down payment") && !latestLower.includes("downpayment")) {
+        questionPool.push({
+          question: "How much down payment will I need?",
+          priority: 9
+        });
+      }
+      
+      // If CPF usage wasn't discussed
+      if (!latestLower.includes("cpf")) {
+        questionPool.push({
+          question: "How can I best utilize my CPF for property purchase?",
+          priority: 7
+        });
+      }
+      
+      // If TDSR/MSR wasn't mentioned
+      if (!latestLower.includes("tdsr") && !latestLower.includes("msr") && !latestLower.includes("debt")) {
+        questionPool.push({
+          question: "How do TDSR and MSR affect my loan eligibility?",
+          priority: 5
+        });
+      }
+    }
+    
+    // Investment related questions
+    if (allTopics.includes("investment") || mentionedConcepts.has("investment") || mentionedConcepts.has("roi")) {
+      // If rental yield wasn't discussed
+      if (!latestLower.includes("rental yield") && !latestLower.includes("yield")) {
+        questionPool.push({
+          question: "Which areas have the best rental yields currently?",
+          priority: 8
+        });
+      }
+      
+      // If capital appreciation wasn't discussed
+      if (!latestLower.includes("capital") && !latestLower.includes("appreciation")) {
+        questionPool.push({
+          question: "Which property types have the best capital appreciation?",
+          priority: 7
+        });
+      }
+      
+      // If tax implications weren't discussed
+      if (!mentionedConcepts.has("tax") && !mentionedConcepts.has("absd")) {
+        questionPool.push({
+          question: "What are the tax implications of property investment?",
+          priority: 6
+        });
+      }
+    }
+    
+    // Area-specific questions
+    const discussedAreasArray = Array.from(discussedAreas);
+    if (discussedAreasArray.length > 0) {
+      // Take the most recently mentioned area
+      const mostRecentArea = discussedAreasArray[discussedAreasArray.length - 1];
+      
+      // If property prices in this area weren't specifically discussed
+      if (!latestLower.includes(`${mostRecentArea} price`) && !latestLower.includes(`${mostRecentArea} cost`)) {
+        questionPool.push({
+          question: `What's the price range for properties in ${mostRecentArea}?`,
+          priority: 8
+        });
+      }
+      
+      // If amenities weren't discussed
+      if (!latestLower.includes(`${mostRecentArea} amenities`) && !latestLower.includes(`${mostRecentArea} facilities`)) {
+        questionPool.push({
+          question: `What amenities are available in ${mostRecentArea}?`,
+          priority: 6
+        });
+      }
+      
+      // If transportation wasn't discussed
+      if (!latestLower.includes(`${mostRecentArea} mrt`) && !latestLower.includes(`${mostRecentArea} transport`)) {
+        questionPool.push({
+          question: `How convenient is public transportation in ${mostRecentArea}?`,
+          priority: 7
+        });
+      }
+      
+      // If schools weren't discussed
+      if (!latestLower.includes(`${mostRecentArea} school`)) {
+        questionPool.push({
+          question: `What are the good schools in ${mostRecentArea}?`,
+          priority: 5
+        });
+      }
+    }
+    
+    // Add questions about processes if mentioned but details weren't provided
+    if (latestLower.includes("process") || latestLower.includes("procedure") || latestLower.includes("steps")) {
+      // If timeline wasn't discussed
+      if (!latestLower.includes("time") && !latestLower.includes("long") && !latestLower.includes("duration")) {
+        questionPool.push({
+          question: "How long does this process typically take?",
+          priority: 8
+        });
+      }
+      
+      // If documents weren't discussed
+      if (!latestLower.includes("document") && !latestLower.includes("paperwork")) {
+        questionPool.push({
+          question: "What documents do I need to prepare?",
+          priority: 7
+        });
+      }
+      
+      // If costs weren't discussed
+      if (!latestLower.includes("fee") && !latestLower.includes("cost")) {
+        questionPool.push({
+          question: "What fees are involved in this process?",
+          priority: 6
+        });
+      }
+    }
+    
+    // Add default generic questions with low priority as fallbacks
+    const defaultQuestions = [
+      { question: "What are the current market trends in Singapore?", priority: 3 },
+      { question: "What common mistakes should I avoid?", priority: 3 },
+      { question: "What hidden costs should I be aware of?", priority: 4 },
+      { question: "How can I get the best deal?", priority: 2 },
+      { question: "What are the next steps I should take?", priority: 2 },
+      { question: "How will the property market change in the coming year?", priority: 3 },
+      { question: "What neighborhoods are becoming popular?", priority: 4 }
+    ];
+    
+    // Add default questions to the pool
+    questionPool.push(...defaultQuestions);
+    
+    // Sort questions by priority (higher number = higher priority)
+    questionPool.sort((a, b) => b.priority - a.priority);
+    
+    // Take only the highest priority questions (up to 3)
+    const selectedQuestions = questionPool.slice(0, 7)
+      .map(item => item.question);
+    
+    // Randomly select 3 questions from the top 7 to create variety
+    while (suggestedQuestions.length < 3 && selectedQuestions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * selectedQuestions.length);
+      const question = selectedQuestions.splice(randomIndex, 1)[0];
+      if (!suggestedQuestions.includes(question)) {
+        suggestedQuestions.push(question);
+      }
+    }
+    
+    return suggestedQuestions;
+  };
 
-  // Limit to 3 suggestions and ensure they're different
-  return [...new Set(suggestedQuestions)].slice(0, 3);
+  // Generate and return the questions
+  return generateSuggestedQuestions();
 };
 
 export default function Home() {
@@ -674,7 +880,7 @@ For the most up-to-date grant information and to check your specific eligibility
         {messages.length === 0 && (
           <div className="text-center text-gray-700 mt-10">
             <p className="font-bold text-xl mb-2">
-              Welcome! I&apos;m your Singapore Real Estate Expert
+              Welcome! I&apos;m your Singapore Real Estate Property Expert
             </p>
             {/* <p className="text-sm mb-4">
               With over 15 years of experience in the Singapore property market,
@@ -758,7 +964,7 @@ For the most up-to-date grant information and to check your specific eligibility
             {/* Dynamic follow-up suggestion buttons that change based on conversation context */}
             {msg.role === "assistant" && idx === messages.length - 1 && (
               <div className="flex flex-wrap justify-start gap-2 pl-2 mt-1">
-                {getContextualFollowUps(msg.content).map((suggestion, i) => (
+                {getContextualFollowUps(msg.content, messages).map((suggestion, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(suggestion)}
