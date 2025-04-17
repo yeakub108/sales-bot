@@ -821,7 +821,7 @@ For the most up-to-date grant information and to check your specific eligibility
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userMessage: message }),
+        body: JSON.stringify({ userMessage: message, history: newMessages }),
       });
 
       // Log response status to help debug

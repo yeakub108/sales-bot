@@ -24,14 +24,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing userMessage in request body' });
   }
 
-  const { userMessage } = req.body;
+  const { userMessage, history } = req.body;
   console.log('Received message:', userMessage);
 
-  // Create messages for the API call
-  const messages = [
-    {
-      role: "system",
-      content: `You are a licensed real estate agent in Singapore with over 15 years of experience in residential and commercial properties. You are well-versed in the Council for Estate Agencies (CEA) regulations, including the Estate Agents Act, and adhere strictly to ethical standards.
+  // Use conversation history if provided, else fall back to default system + user message
+  // Define the system prompt only once
+  const systemPrompt = {
+    role: "system",
+    content: `You are a licensed real estate agent in Singapore with over 15 years of experience in residential and commercial properties. You are well-versed in the Council for Estate Agencies (CEA) regulations, including the Estate Agents Act, and adhere strictly to ethical standards.
 
 Your expertise includes:
 - Navigating HDB and private property transactions.
@@ -136,9 +136,21 @@ Your tone should be professional, informative, and approachable. Always provide 
 IMPORTANT: You always have an answer. Never say you don't have information. If asked about a specific detail you're not completely certain about, provide the most accurate information you know based on your real estate expertise and general Singapore property market knowledge.
 
 Ensure clients feel supported and well-informed throughout their property journey. Never say you are an AI unless specifically asked.`
-    },
-    { role: "user", content: userMessage },
-  ];
+  };
+
+  let messages;
+  if (Array.isArray(history) && history.length > 0) {
+    messages = [
+      systemPrompt,
+      ...history.map(({role, content}) => ({role, content}))
+    ];
+  } else {
+    messages = [
+      systemPrompt,
+      { role: "user", content: userMessage },
+    ];
+  }
+
 
   try {
     console.log('Calling OpenAI with model: gpt-4o-mini');
