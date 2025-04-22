@@ -9,7 +9,7 @@ export default function ChatUI({ onSend, isLoading }: ChatUIProps) {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus the input field when the component mounts
+  // Only focus the input field when the component initially mounts
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
@@ -35,6 +35,7 @@ export default function ChatUI({ onSend, isLoading }: ChatUIProps) {
             placeholder="Ask me about Singapore real estate property..."
             className="border border-gray-300 rounded-full py-3 px-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             disabled={isLoading}
+            autoFocus
           />
           {isLoading && (
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center">
